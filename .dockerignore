@@ -1,0 +1,8 @@
+.DS_Store
+.dockerignore
+.editorconfig
+.eslintrc.json
+node_modules
+Dockerfile
+Makefile
+README.md

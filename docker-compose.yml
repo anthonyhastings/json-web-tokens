@@ -1,0 +1,18 @@
+version: '2'
+services:
+    express:
+        build: ./
+        image: antwan1986:json-web-tokens-express
+        container_name: json-web-tokens-express
+        links:
+            - database:db
+        environment:
+            MONGODB_URL: mongodb://db:27017
+        ports:
+            - 49876:8080
+        volumes:
+            - ./src:/src
+            - /src/node_modules
+    database:
+        image: mongo:3.2
+        container_name: json-web-tokens-database
