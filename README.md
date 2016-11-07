@@ -41,7 +41,7 @@ Cache-Control: no-cache
 Content-Type: application/x-www-form-urlencoded
 ```
 
-With a user now setup, try hitting the "get all users" endpoint:
+With a user now setup, try hitting the `/users` endpoint:
 
 ```
 GET /api/users HTTP/1.1
@@ -61,7 +61,7 @@ Content-Type: application/x-www-form-urlencoded
 name=Geralt+of+Rivia&password=y3nn3f3r
 ```
 
-This shall return a token that can now be used for the "get all users" endpoint earlier. Send it as a header and data will now be returned:
+This shall return a token that can now be used for the `/users` endpoint earlier. Send it as a header and data will now be returned:
 
 ```
 GET /api/users HTTP/1.1
