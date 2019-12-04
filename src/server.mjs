@@ -4,8 +4,8 @@ import bodyParser from 'body-parser';
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import morgan from 'morgan';
-import config from './config';
-import User from './user';
+import config from './config.mjs';
+import User from './user.mjs';
 
 // Connect to the database.
 mongoose.connect(config.database);

@@ -1,5 +1,6 @@
 *
 !src/
+!.babelrc
 !.eslintrc.json
 !.prettierrc.json
 !package.json
