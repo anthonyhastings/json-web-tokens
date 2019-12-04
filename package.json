@@ -5,13 +5,17 @@
   "author": "Anthony Hastings <ar.hastings@gmail.com>",
   "license": "MIT",
   "private": true,
-  "main": "server.js",
+  "main": "src/server.js",
   "scripts": {
-    "lint": "eslint ./",
+    "lint": "eslint --ext js --ext mjs src/",
     "start": "nodemon src/server.js --exec babel-node --presets es2015"
   },
   "devDependencies": {
-    "eslint": "3.9.1"
+    "babel-eslint": "10.0.3",
+    "eslint": "6.7.2",
+    "eslint-config-prettier": "6.7.0",
+    "eslint-plugin-prettier": "3.1.1",
+    "prettier": "1.19.1"
   },
   "dependencies": {
     "babel-cli": "6.18.0",
