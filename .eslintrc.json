@@ -1,0 +1,36 @@
+{
+  "root": true,
+  "parser": "babel-eslint",
+  "env": {
+    "es6": true,
+    "node": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 6,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true,
+      "experimentalObjectRestSpread": true
+    }
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:prettier/recommended"
+  ],
+  "rules": {
+    "camelcase": "error",
+    "dot-notation": "error",
+    "eqeqeq": [
+      "error",
+      "allow-null"
+    ],
+    "new-cap": "error",
+    "no-caller": "error",
+    "no-console": "off",
+    "no-multi-str": "error",
+    "no-undef": "error",
+    "no-unused-vars": "error",
+    "strict": "error",
+    "yoda": "error"
+  }
+}
