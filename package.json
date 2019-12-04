@@ -8,7 +8,7 @@
   "main": "server.js",
   "scripts": {
     "lint": "eslint ./",
-    "start": "nodemon server.js --exec babel-node --presets es2015"
+    "start": "nodemon src/server.js --exec babel-node --presets es2015"
   },
   "devDependencies": {
     "eslint": "3.9.1"

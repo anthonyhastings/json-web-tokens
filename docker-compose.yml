@@ -1,18 +1,18 @@
-version: '2'
+version: '3.7'
 services:
-    express:
-        build: ./
-        image: antwan1986:json-web-tokens-express
-        container_name: json-web-tokens-express
-        links:
-            - database:db
+    webserver:
+        build:
+          context: ./
+        command: sh -c "dockerize -wait tcp://database:27017 npm start"
+        depends_on:
+            - database
         environment:
-            MONGODB_URL: mongodb://db:27017
+            - MONGODB_URL=mongodb://database:27017
         ports:
             - 49876:8080
         volumes:
-            - ./src:/src
-            - /src/node_modules
+            - ./src:/json-web-tokens/src
     database:
-        image: mongo:3.2
-        container_name: json-web-tokens-database
+        image: mongo:4.2.1
+        ports:
+            - 49875:27017

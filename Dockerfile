@@ -1,23 +1,20 @@
-FROM mhart/alpine-node:4.5.0
-MAINTAINER Anthony Hastings <ar.hastings@gmail.com>
+FROM node:13.2.0-alpine
+LABEL maintainer="Anthony Hastings <ar.hastings@gmail.com>"
 
-# Installing bash.
-RUN apk add --no-cache bash bash-doc bash-completion
+WORKDIR /json-web-tokens
 
-# Create a directory (to house our source files) and navigate to it.
-WORKDIR /src
+RUN apk add --no-cache openssl
+ENV DOCKERIZE_VERSION v0.6.1
+RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-alpine-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
+  && tar -C /usr/local/bin -xzvf dockerize-alpine-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
+  && rm dockerize-alpine-linux-amd64-$DOCKERIZE_VERSION.tar.gz
 
-# Copy over the package.json file to the containers working directory.
-COPY ./src/package.json /src/package.json
+RUN apk add --no-cache bash
 
-# Install our desired node packages.
+COPY package.json package-lock.json ./
+
 RUN npm install
 
-# Copy everything in the host folder into the working folder of the container.
-COPY ./src/ /src/
+COPY . ./
 
-# Expose the specified port back to the host machine.
-EXPOSE 8080
-
-# Run the API server.
-CMD ["npm", "start"]
+CMD npm start
