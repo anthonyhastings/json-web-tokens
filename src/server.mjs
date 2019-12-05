@@ -4,6 +4,7 @@ import bodyParser from 'body-parser';
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import morgan from 'morgan';
+import bcrypt from 'bcryptjs';
 import config from './config.mjs';
 import User from './user.mjs';
 
@@ -30,75 +31,53 @@ app.get('/', function(request, response) {
   response.json({ message: 'Welcome to the root.' });
 });
 
-// GET: [PUBLIC] Setup user.
-app.get('/setup', function(request, response) {
-  User.findOne(
-    {
-      username: 'gwynbleidd'
-    },
-    function(error, user) {
-      if (error) {
-        throw error;
-      }
+// POST: [PUBLIC] Create a User.
+apiRoutes.post('/register', async (request, response) => {
+  const existingUser = await User.findOne({ username: request.body.username });
+  if (existingUser)
+    return response.json({ success: false, message: 'User already exists.' });
 
-      if (user) {
-        response.json({ success: false, message: 'User already exists.' });
-      } else {
-        const sampleUser = new User({
-          username: 'gwynbleidd',
-          password: 'thebutcherofblaviken',
-          admin: true
-        });
+  await new User({
+    username: request.body.username,
+    password: bcrypt.hashSync(request.body.password, 10),
+    admin: true
+  }).save();
 
-        sampleUser.save(function(error) {
-          if (error) {
-            throw error;
-          }
-
-          response.statusCode = 201;
-          response.json({ success: true });
-        });
-      }
-    }
-  );
+  response.statusCode = 201;
+  response.json({ success: true });
 });
 
 // POST: [PUBLIC] Authenticate User.
-apiRoutes.post('/authenticate', function(request, response) {
-  User.findOne(
+apiRoutes.post('/authenticate', async (request, response) => {
+  const existingUser = await User.findOne({ username: request.body.username });
+  if (!existingUser)
+    return response.json({ success: false, message: 'User not found.' });
+
+  const passwordMatches = bcrypt.compareSync(
+    request.body.password,
+    existingUser.password
+  );
+
+  if (!passwordMatches)
+    return response.json({ success: false, message: 'Incorrect password.' });
+
+  const token = jwt.sign(
     {
-      username: request.body.username
+      _id: existingUser._id,
+      username: existingUser.username,
+      admin: existingUser.admin
     },
-    function(error, user) {
-      if (error) {
-        throw error;
-      }
-
-      if (!user) {
-        response.json({
-          success: false,
-          message: 'Authentication failed. User not found.'
-        });
-      } else if (user) {
-        if (user.password !== request.body.password) {
-          response.json({
-            success: false,
-            message: 'Authentication failed. Incorrect password.'
-          });
-        } else {
-          const token = jwt.sign(user.toJSON(), app.get('privateKey'), {
-            expiresIn: '1h'
-          });
-
-          response.json({
-            success: true,
-            message: 'Authentication completed. Token issued.',
-            token: token
-          });
-        }
-      }
+    app.get('privateKey'),
+    {
+      expiresIn: '1h'
     }
   );
+
+  response.json({
+    success: true,
+    message: 'Token issued.',
+    token
+  });
 });
 
 // Adding middleware for token verification to make routes below private.
