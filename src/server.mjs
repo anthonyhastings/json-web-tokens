@@ -91,7 +91,7 @@ apiRoutes.post('/authenticate', function(request, response) {
             message: 'Authentication failed. Incorrect password.'
           });
         } else {
-          const token = jwt.sign(user, app.get('privateKey'), {
+          const token = jwt.sign(user.toJSON(), app.get('privateKey'), {
             expiresIn: '1h'
           });
 
