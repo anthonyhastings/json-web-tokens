@@ -34,7 +34,7 @@ app.get('/', function(request, response) {
 app.get('/setup', function(request, response) {
   User.findOne(
     {
-      name: 'Geralt of Rivia'
+      username: 'gwynbleidd'
     },
     function(error, user) {
       if (error) {
@@ -45,8 +45,8 @@ app.get('/setup', function(request, response) {
         response.json({ success: false, message: 'User already exists.' });
       } else {
         const sampleUser = new User({
-          name: 'Geralt of Rivia',
-          password: 'y3nn3f3r',
+          username: 'gwynbleidd',
+          password: 'thebutcherofblaviken',
           admin: true
         });
 
@@ -63,16 +63,11 @@ app.get('/setup', function(request, response) {
   );
 });
 
-// GET: [PUBLIC] API root request.
-apiRoutes.get('/', function(request, response) {
-  response.json({ message: 'Welcome to the API.' });
-});
-
 // POST: [PUBLIC] Authenticate User.
 apiRoutes.post('/authenticate', function(request, response) {
   User.findOne(
     {
-      name: request.body.name
+      username: request.body.username
     },
     function(error, user) {
       if (error) {
