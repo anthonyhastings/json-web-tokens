@@ -8,6 +8,7 @@ services:
             - database
         environment:
             - MONGODB_URL=mongodb://database:27017
+            - PRIVATE_KEY=example_private_key
         ports:
             - 49876:8080
         volumes:

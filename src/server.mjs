@@ -16,9 +16,6 @@ const app = express();
 const port = process.env.PORT || 8080;
 const apiRoutes = new express.Router();
 
-// Setting variable onto the applciation instance.
-app.set('privateKey', config.privateKey);
-
 // Parsing incoming urlencoded or JSON request bodies.
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -26,32 +23,42 @@ app.use(bodyParser.json());
 // Attaching HTTP request logger.
 app.use(morgan('dev'));
 
+// Apply the routes to our application with the prefix /api
+app.use('/api', apiRoutes);
+
+// Starting the server.
+app.listen(port);
+
 // GET: [PUBLIC] Root request.
-app.get('/', function(request, response) {
-  response.json({ message: 'Welcome to the root.' });
-});
+app.get('/', (request, response) => response.json({ message: 'Welcome!' }));
 
 // POST: [PUBLIC] Create a User.
 apiRoutes.post('/register', async (request, response) => {
   const existingUser = await User.findOne({ username: request.body.username });
   if (existingUser)
-    return response.json({ success: false, message: 'User already exists.' });
+    return response
+      .status(409)
+      .json({ success: false, message: 'User already exists.' });
 
-  await new User({
+  const newUser = await new User({
     username: request.body.username,
     password: bcrypt.hashSync(request.body.password, 10),
     admin: true
   }).save();
 
-  response.statusCode = 201;
-  response.json({ success: true });
+  response.status(201).json({ success: true, user: newUser.toJSON() });
 });
 
 // POST: [PUBLIC] Authenticate User.
 apiRoutes.post('/authenticate', async (request, response) => {
-  const existingUser = await User.findOne({ username: request.body.username });
+  const existingUser = await User.findOne({
+    username: request.body.username
+  });
+
   if (!existingUser)
-    return response.json({ success: false, message: 'User not found.' });
+    return response
+      .status(404)
+      .json({ success: false, message: 'User not found.' });
 
   const passwordMatches = bcrypt.compareSync(
     request.body.password,
@@ -59,62 +66,42 @@ apiRoutes.post('/authenticate', async (request, response) => {
   );
 
   if (!passwordMatches)
-    return response.json({ success: false, message: 'Incorrect password.' });
-
-  const token = jwt.sign(
-    {
-      _id: existingUser._id,
-      username: existingUser.username,
-      admin: existingUser.admin
-    },
-    app.get('privateKey'),
-    {
-      expiresIn: '1h'
-    }
-  );
+    return response
+      .status(401)
+      .json({ success: false, message: 'Incorrect password.' });
 
   response.json({
     success: true,
-    message: 'Token issued.',
-    token
+    token: jwt.sign(existingUser.toJSON(), config.privateKey, {
+      expiresIn: '30s'
+    })
   });
 });
 
 // Adding middleware for token verification to make routes below private.
-apiRoutes.use(function(request, response, next) {
-  const token =
-    request.body.token ||
-    request.query.token ||
-    request.headers['x-access-token'];
-
-  if (token) {
-    jwt.verify(token, app.get('privateKey'), function(error, decoded) {
-      if (error) {
-        response
-          .status(403)
-          .json({ success: false, message: 'Failed to authenticate token.' });
-      } else {
-        request.decoded = decoded;
-        next();
-      }
-    });
-  } else {
-    response
-      .status(403)
+apiRoutes.use((request, response, next) => {
+  const token = request.headers['x-access-token'];
+  if (!token)
+    return response
+      .status(401)
       .send({ success: false, message: 'No token provided.' });
-  }
-});
 
-// GET: [PRIVATE] Return all Users.
-apiRoutes.get('/users', function(request, response) {
-  User.find({}, function(error, users) {
-    console.log(typeof users, users);
-    response.json(users);
+  jwt.verify(token, config.privateKey, (error, decoded) => {
+    if (error)
+      return response.status(401).json({
+        success: false,
+        message: `Failed to verify token; ${error.message}.`
+      });
+
+    response.locals.decodedToken = decoded;
+    next();
   });
 });
 
-// Apply the routes to our application with the prefix /api
-app.use('/api', apiRoutes);
+// GET: [PRIVATE] Return User.
+apiRoutes.get('/users/myself', async (request, response) => {
+  const { decodedToken: token } = response.locals;
+  const existingUser = await User.findById(token._id);
 
-// Starting the server.
-app.listen(port);
+  return response.json({ success: true, user: existingUser.toJSON() });
+});
