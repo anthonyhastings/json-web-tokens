@@ -1,72 +1,29 @@
 # JSON Web Tokens
 
 ## Introduction
-The repository is a demonstration of how JSON web tokens can be used to add
-an authentication layer to an API, and ensure only authorized users can access
-certain endpoints.
+This repository is a demonstration of how JSON web tokens (JWTs) can be used to add a layer of authentication to an application, and ensure only authorized users can access certain endpoints.
 
 ## Installation
-The API server uses Express and the database server uses MongoDB. Both servers
-are created and run via Docker. Ensure that _Docker_ and _Docker Compose_ are installed and then run the following:
+The API server uses Express and the database server uses MongoDB. The entire application is dockerized so ensure that _Docker_ and _Docker Compose_ are installed and then run the following:
 
 ```
 docker-compose up
 ```
 
-Watch for terminal output to indicate that both servers have started. The API
-will be port-forwarded onto the host machine at
+Watch for terminal output to indicate that both servers have started. The API will be port-forwarded onto the host machine at
 [http://localhost:49876](http://localhost:49876).
 
 ## Demonstration
 
-To make interacting with the API easier, it's recommended to use a tool such
-as [Postman](https://chrome.google.com/webstore/detail/postman/fhbjgbiflinjbdggehcddcbncdddomop?hl=en) to make the calls; it makes setting headers and request bodies much
-easier to deal with.
+To make interacting with the API easier, it's recommended to use a tool such as [Postman](https://chrome.google.com/webstore/detail/postman/fhbjgbiflinjbdggehcddcbncdddomop?hl=en) to make the calls; it makes setting headers and request bodies much
+easier to deal with. I have exported a starting set of Postman calls available below:
 
-You can ensure that the API server is working and responding to requests by hitting the root of the server, which should return some JSON:
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/1ea58c6930a22e603a8e)
 
-```
-GET / HTTP/1.1
-Host: localhost:49876
-Cache-Control: no-cache
-Content-Type: application/x-www-form-urlencoded
-```
+The flow for running these commands should be as follows:
 
-Once the server has been confirmed as working, create a user account using the helper endpoint as demonstrated below:
-
-```
-GET /setup HTTP/1.1
-Host: localhost:49876
-Cache-Control: no-cache
-Content-Type: application/x-www-form-urlencoded
-```
-
-With a user now setup, try hitting the `/users` endpoint:
-
-```
-GET /api/users HTTP/1.1
-Host: localhost:49876
-Cache-Control: no-cache
-Content-Type: application/x-www-form-urlencoded
-```
-
-It will be forbidden as it is an authenticated endpoint and requires the user supply a JSON Web Token. To retrieve one, post the users name and password to the authentication endpoint:
-
-```
-POST /api/authenticate HTTP/1.1
-Host: localhost:49876
-Cache-Control: no-cache
-Content-Type: application/x-www-form-urlencoded
-
-name=Geralt+of+Rivia&password=y3nn3f3r
-```
-
-This shall return a token that can now be used for the `/users` endpoint earlier. Send it as a header and data will now be returned:
-
-```
-GET /api/users HTTP/1.1
-Host: localhost:49876
-x-access-token: PUT_TOKEN_HERE
-Cache-Control: no-cache
-Content-Type: application/x-www-form-urlencoded
-```
+1. Trigger the "Myself (Unauthenticated)" call and observe the resulting `401` response due to not supplying a valid JWT.
+1. Trigger the "Register" endpoint (which is pre-populated with credentials) to make a `User` record.
+1. Trigger the "Authenticate" endpoint (which is pre-populated with credentials) to generate a 30 second JWT token containing the relevant `User` record.
+1. Take the token returned from the "Authenticate" endpoint and set it as the `x-access-token` header of the "Myself (Authenticated)" call. Run the call and see the `User` record returned.
+1. Wait over 30 seconds and re-run the call to the "Authenticate" endpoint. You will now see a `401` error because the JWT token has expired and is invalid.
