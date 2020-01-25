@@ -9,17 +9,20 @@ import mongoose from 'mongoose';
 import morgan from 'morgan';
 import bcrypt from 'bcryptjs';
 import config from './config.mjs';
-import User from './user.mjs';
+import User from '../user.mjs';
 
 // Reading private RSA-encoded PEM.
 // Note: A private key would not normally be committed to
 //       a repository; this is for demonstration purposes.
-const privatePem = fs.readFileSync('./src/example_private.pem', 'utf8');
+const privatePem = fs.readFileSync(
+  './src/auth-service/example_private.pem',
+  'utf8'
+);
 
 // Generating JSON Web Key using the private RSA-encoded PEM.
 const jwk = rsaPemToJwk(
   privatePem,
-  { kid: 'key-id-123', use: 'sig', alg: 'RS256' },
+  { kid: config.kid, use: 'sig', alg: 'RS256' },
   'public'
 );
 
@@ -48,7 +51,9 @@ app.use('/api', apiRoutes);
 app.listen(port);
 
 // GET: [PUBLIC] Root request.
-app.get('/', (request, response) => response.json({ message: 'Welcome!' }));
+app.get('/', (request, response) =>
+  response.json({ message: 'Welcome to the Auth Service.' })
+);
 
 // GET: [PUBLIC] Returning a JSON Web Key Set.
 app.get('/.well-known/jwks.json', (request, response) => {

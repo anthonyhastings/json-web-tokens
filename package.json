@@ -5,10 +5,10 @@
   "author": "Anthony Hastings <ar.hastings@gmail.com>",
   "license": "MIT",
   "private": true,
-  "main": "src/server.js",
+  "main": "src/auth-service/index.mjs",
   "scripts": {
-    "lint": "eslint --ext js --ext mjs src/",
-    "start": "nodemon --exec babel-node -- src/server.mjs"
+    "auth-service": "nodemon --exec babel-node -- src/auth-service/index.mjs",
+    "lint": "eslint --ext js --ext mjs src/"
   },
   "devDependencies": {
     "babel-eslint": "10.0.3",

@@ -1,17 +1,20 @@
 version: '3.7'
+x-shared-envs:
+    &shared-envs
+    MONGODB_URL: mongodb://database:27017
+    KID: kid-123
 services:
-    webserver:
+    auth-service:
         build:
           context: ./
-        command: sh -c "dockerize -wait tcp://database:27017 npm start"
+        command: sh -c "dockerize -wait tcp://database:27017 npm run auth-service"
         depends_on:
             - database
-        environment:
-            - MONGODB_URL=mongodb://database:27017
+        environment: *shared-envs
         ports:
             - 49876:8080
         volumes:
-            - ./src:/json-web-tokens/src
+            - ./src/auth-service:/json-web-tokens/src/auth-service
     database:
         image: mongo:4.2.1
         ports:
