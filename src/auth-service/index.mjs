@@ -1,12 +1,33 @@
 // Loading dependencies.
+import fs from 'fs';
 import express from 'express';
 import bodyParser from 'body-parser';
 import jwt from 'jsonwebtoken';
+import rsaPemToJwk from 'rsa-pem-to-jwk';
+import jwkToPem from 'jwk-to-pem';
 import mongoose from 'mongoose';
 import morgan from 'morgan';
 import bcrypt from 'bcryptjs';
 import config from './config.mjs';
-import User from './user.mjs';
+import User from '../user.mjs';
+
+// Reading private RSA-encoded PEM.
+// Note: A private key would not normally be committed to
+//       a repository; this is for demonstration purposes.
+const privatePem = fs.readFileSync(
+  './src/auth-service/example_private.pem',
+  'utf8'
+);
+
+// Generating JSON Web Key using the private RSA-encoded PEM.
+const jwk = rsaPemToJwk(
+  privatePem,
+  { kid: config.kid, use: 'sig', alg: 'RS256' },
+  'public'
+);
+
+// Generating public RSA-encoded PEM from JSON Web Key.
+const publicPem = jwkToPem(jwk);
 
 // Connect to the database.
 mongoose.connect(config.database);
@@ -30,7 +51,16 @@ app.use('/api', apiRoutes);
 app.listen(port);
 
 // GET: [PUBLIC] Root request.
-app.get('/', (request, response) => response.json({ message: 'Welcome!' }));
+app.get('/', (request, response) =>
+  response.json({ message: 'Welcome to the Auth Service.' })
+);
+
+// GET: [PUBLIC] Returning a JSON Web Key Set.
+app.get('/.well-known/jwks.json', (request, response) => {
+  response.status(200).send({
+    keys: [jwk]
+  });
+});
 
 // POST: [PUBLIC] Create a User.
 apiRoutes.post('/register', async (request, response) => {
@@ -72,7 +102,8 @@ apiRoutes.post('/authenticate', async (request, response) => {
 
   response.json({
     success: true,
-    token: jwt.sign(existingUser.toJSON(), config.privateKey, {
+    token: jwt.sign(existingUser.toJSON(), privatePem, {
+      algorithm: 'RS256',
       expiresIn: '30s'
     })
   });
@@ -86,7 +117,7 @@ apiRoutes.use((request, response, next) => {
       .status(401)
       .send({ success: false, message: 'No token provided.' });
 
-  jwt.verify(token, config.privateKey, (error, decoded) => {
+  jwt.verify(token, publicPem, { algorithms: ['RS256'] }, (error, decoded) => {
     if (error)
       return response.status(401).json({
         success: false,
