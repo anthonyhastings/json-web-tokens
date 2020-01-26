@@ -19,3 +19,17 @@ services:
         image: mongo:4.2.1
         ports:
             - 49875:27017
+    downstream-service:
+        build:
+          context: ./
+        command: sh -c "dockerize -wait tcp://database:27017 -wait tcp://auth-service:8080 npm run downstream-service"
+        depends_on:
+            - auth-service
+            - database
+        environment:
+            << : *shared-envs
+            JWKS_ENDPOINT: http://auth-service:8080/.well-known/jwks.json
+        ports:
+            - 49877:8080
+        volumes:
+            - ./src/downstream-service:/json-web-tokens/src/downstream-service

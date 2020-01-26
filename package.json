@@ -8,6 +8,7 @@
   "main": "src/auth-service/index.mjs",
   "scripts": {
     "auth-service": "nodemon --exec babel-node -- src/auth-service/index.mjs",
+    "downstream-service": "nodemon --exec babel-node -- src/downstream-service/index.mjs",
     "lint": "eslint --ext js --ext mjs src/"
   },
   "devDependencies": {
@@ -26,6 +27,7 @@
     "express": "4.17.1",
     "jsonwebtoken": "8.5.1",
     "jwk-to-pem": "2.0.3",
+    "jwks-rsa": "1.6.2",
     "mongoose": "5.7.13",
     "morgan": "1.9.1",
     "nodemon": "2.0.1",
