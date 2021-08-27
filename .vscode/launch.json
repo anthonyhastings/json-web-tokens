@@ -1,0 +1,23 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Auth Service",
+      "port": 9228,
+      "remoteRoot": "/home/node",
+      "request": "attach",
+      "restart": true,
+      "skipFiles": ["<node_internals>/**"],
+      "type": "pwa-node",
+    },
+    {
+      "name": "Downstream Service",
+      "port": 9227,
+      "remoteRoot": "/home/node",
+      "request": "attach",
+      "restart": true,
+      "skipFiles": ["<node_internals>/**"],
+      "type": "pwa-node"
+    }
+  ]
+}

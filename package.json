@@ -7,8 +7,8 @@
   "private": true,
   "main": "src/auth-service/index.mjs",
   "scripts": {
-    "auth-service": "nodemon --exec babel-node -- src/auth-service/index.mjs",
-    "downstream-service": "nodemon --exec babel-node -- src/downstream-service/index.mjs",
+    "auth-service": "nodemon --exec babel-node --inspect=0.0.0.0:9228 -- src/auth-service/index.mjs",
+    "downstream-service": "nodemon --exec babel-node --inspect=0.0.0.0:9227 -- src/downstream-service/index.mjs",
     "lint": "eslint --ext js --ext mjs src/"
   },
   "devDependencies": {

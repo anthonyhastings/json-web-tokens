@@ -13,8 +13,9 @@ services:
         environment: *shared-envs
         ports:
             - 49876:8080
+            - 9228:9228
         volumes:
-            - ./src/auth-service:/json-web-tokens/src/auth-service
+            - ./src/auth-service:/home/node/src/auth-service
     database:
         image: mongo:4.2.1
         ports:
@@ -31,5 +32,6 @@ services:
             JWKS_ENDPOINT: http://auth-service:8080/.well-known/jwks.json
         ports:
             - 49877:8080
+            - 9227:9227
         volumes:
-            - ./src/downstream-service:/json-web-tokens/src/downstream-service
+            - ./src/downstream-service:/home/node/src/downstream-service
