@@ -1,8 +1,10 @@
 version: '3.7'
+
 x-shared-envs:
     &shared-envs
     MONGODB_URL: mongodb://database:27017
     KID: kid-123
+
 services:
     auth-service:
         build:
@@ -12,26 +14,46 @@ services:
             - database
         environment: *shared-envs
         ports:
-            - 49876:8080
+            - 49802:8080
             - 9228:9228
         volumes:
             - ./src/auth-service:/home/node/src/auth-service
+
+    auth-service-proxy:
+        image: mitmproxy/mitmproxy
+        command: sh -c "mitmweb --mode upstream:auth-service:8080 --listen-host 0.0.0.0 --listen-port 80 --web-host 0.0.0.0 --web-port 3000 --no-web-open-browser"
+        depends_on:
+            - auth-service
+        ports:
+            - 49801:80
+            - 5000:3000
+
     database:
         image: mongo:4.2.1
         ports:
-            - 49875:27017
+            - 49800:27017
+
     downstream-service:
         build:
           context: ./
-        command: sh -c "dockerize -wait tcp://database:27017 -wait tcp://auth-service:8080 npm run downstream-service"
+        command: sh -c "dockerize -wait tcp://database:27017 -wait tcp://auth-service-proxy:80 npm run downstream-service"
         depends_on:
-            - auth-service
+            - auth-service-proxy
             - database
         environment:
             << : *shared-envs
-            JWKS_ENDPOINT: http://auth-service:8080/.well-known/jwks.json
+            JWKS_ENDPOINT: http://auth-service-proxy:80/.well-known/jwks.json
         ports:
-            - 49877:8080
+            - 49804:8080
             - 9227:9227
         volumes:
             - ./src/downstream-service:/home/node/src/downstream-service
+
+    downstream-service-proxy:
+        image: mitmproxy/mitmproxy
+        command: sh -c "mitmweb --mode upstream:downstream-service:8080 --listen-host 0.0.0.0 --listen-port 80 --web-host 0.0.0.0 --web-port 3000 --no-web-open-browser"
+        depends_on:
+            - downstream-service
+        ports:
+            - 49803:80
+            - 5001:3000
